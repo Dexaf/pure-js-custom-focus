@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test focus</title>
+</head>
+
+<body>
+  <div id="debugger"></div>
+  <div class="spreader-v">
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+  </div>
+  <h1>Canvas</h1>
+  <canvas id="canvas">
+
+  </canvas>
+  <br>
+  <small>it shouldn't work with mobile phone as mobile browser doesn't support pointer lock for obvious reasons</small>
+  <div class="spreader-v">
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+    <h1>lorem ipsum</h1>
+  </div>
+</body>
+
+<style>
+  body {
+    text-align: center;
+  }
+
+  .spreader-v {
+    height: 50vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  canvas {
+    border: 1px solid black;
+    background-color: rgb(200, 200, 200);
+    transition: border 0.2s;
+  }
+
+  canvas:focus {
+    border: 1px solid red;
+  }
+
+  #debugger {
+    border: 1px solid lightgrey;
+    background-color: rgb(250, 250, 250);
+    box-shadow: 1px 2px 3px rgba(200, 200, 200, 0.75);
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    width: 18rem;
+    padding: 1rem 2rem;
+    z-index: 999;
+    font-family: 'Courier New', Courier, monospace;
+  }
+</style>
+
+<script>
+  //DEBUG-----
+  const debuggerContainer = document.getElementById("debugger");
+  addEventListener("mousemove", (e) => {
+    let md = debuggerContainer.querySelector('#mouseDebug');
+    const msg = `
+        <h4>mouse stats</h4>  
+        <p>movement speed x: ${e.movementX}; y: ${e.movementY}</p>
+        <p>position x: ${e.clientX}; y: ${e.clientY}</p>
+      `;
+
+    if (md) {
+      md.innerHTML = msg
+    } else {
+      md = document.createElement('div');
+      md.id = "mouseDebug"
+      md.innerHTML = msg;
+      debuggerContainer.append(md);
+    }
+  })
+
+  addEventListener("keydown", (e) => {
+    let kd = debuggerContainer.querySelector('#keyboardDebug');
+
+    const msg = `
+      <h4>keyboard stats</h4>
+      <p>pressed code: ${e.which}</p>
+      <p>corresponding key: ${e.key}</p>
+    `;
+
+    if (kd) {
+      kd.innerHTML = msg;
+    } else {
+      kd = document.createElement('div');
+      kd.id = "keyboardDebug"
+      kd.innerHTML = msg;
+      debuggerContainer.appendChild(kd);
+    }
+  })
+  //---------
+
+  const canvas = document.getElementById("canvas");
+  canvas.addEventListener("click", async () => {
+    handleCanvasFocus();
+  })
+
+  const handleCanvasFocus = async () => {
+    //lock pointer to prevent click outside the "focus" zone
+    await canvas.requestPointerLock();
+    canvas.style.borderColor = 'red';
+    //block scroll by keys to avoid weird interactions
+    document.addEventListener("keydown", blockScrollyByKeys)
+
+    //DEBUG
+    let fd = debuggerContainer.querySelector('#focusDebug');
+
+    const msg = `
+      <h4>focus stats</h4>
+      <p>focus: on</p>
+    `;
+
+    if (fd) {
+      fd.innerHTML = msg;
+    } else {
+      fd = document.createElement('div');
+      fd.id = "focusDebug"
+      fd.innerHTML = msg;
+      debuggerContainer.appendChild(fd);
+    }
+    //---------
+  }
+
+  document.onpointerlockchange = (e) => {
+    //when we get out of focus we free the buttons
+    if (!document.pointerLockElement) {
+      canvas.style.borderColor = 'black';
+      document.removeEventListener("keydown", blockScrollyByKeys)
+
+      //DEBUG-----
+      let fd = debuggerContainer.querySelector('#focusDebug');
+
+      const msg = `
+        <h4>focus stats</h4>
+        <p>focus: off</p>
+      `;
+
+      if (fd) {
+        fd.innerHTML = msg;
+      } else {
+        fd = document.createElement('div');
+        fd.id = "focusDebug"
+        fd.innerHTML = msg;
+        debuggerContainer.appendChild(fd);
+      }
+      //---------
+    }
+  }
+
+  const blockScrollyByKeys = (e) => {
+    const keys = [37, 38, 39, 40];
+    if (keys.includes(e.which))
+      e.preventDefault();
+  }
+
+</script>
+
+</html>
